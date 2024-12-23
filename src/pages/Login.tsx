@@ -1,14 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 export const Login = () => {
   const navigate = useNavigate();
-  const { setAuthInfo } = useAuth();
+  const { user, token, setAuthInfo } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (user && token) {
+      navigate("/");
+    }
+  }, [user, token, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,8 +36,13 @@ export const Login = () => {
         throw new Error(data.message || "Login failed");
       }
 
-      setAuthInfo(data.user, data.token);
-      navigate("/");
+      if (data.success && data.data) {
+        const { user, token } = data.data;
+        setAuthInfo(user, token);
+        navigate("/");
+      } else {
+        throw new Error("Invalid response format");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { Role } from "../types/auth";
+import { STORAGE_KEYS } from "../constants/storage";
 
 export interface User {
   id: string;
@@ -28,14 +29,75 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
+    try {
+      const storedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
+      const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
 
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      if (storedToken && storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+
+        // Validate user data
+        if (
+          parsedUser &&
+          parsedUser.id &&
+          parsedUser.email &&
+          parsedUser.role
+        ) {
+          setToken(storedToken);
+          setUser(parsedUser);
+        } else {
+          throw new Error("Invalid stored user data");
+        }
+      }
+    } catch (error) {
+      console.error("Error loading auth state:", error);
+      // Clear invalid data
+      localStorage.removeItem(STORAGE_KEYS.TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
+  }, []);
+
+  // Listen for storage changes from other tabs
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEYS.TOKEN) {
+        // Token removed in another tab
+        if (!e.newValue) {
+          setToken(null);
+          setUser(null);
+          return;
+        }
+        // Token added/updated in another tab
+        setToken(e.newValue);
+      }
+
+      if (e.key === STORAGE_KEYS.USER) {
+        // User removed in another tab
+        if (!e.newValue) {
+          setUser(null);
+          return;
+        }
+        // User added/updated in another tab
+        try {
+          const parsedUser = JSON.parse(e.newValue);
+          if (
+            parsedUser &&
+            parsedUser.id &&
+            parsedUser.email &&
+            parsedUser.role
+          ) {
+            setUser(parsedUser);
+          }
+        } catch (error) {
+          console.error("Error parsing user data from storage event:", error);
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   const logout = async () => {
@@ -51,8 +113,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         throw new Error("Logout failed");
       }
 
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      localStorage.removeItem(STORAGE_KEYS.TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER);
       setToken(null);
       setUser(null);
       setError(null);
@@ -63,10 +125,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const setAuthInfo = (user: User, token: string) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-    setUser(user);
-    setToken(token);
+    try {
+      if (!user || !token) {
+        throw new Error("Invalid auth data");
+      }
+
+      localStorage.setItem(STORAGE_KEYS.TOKEN, token);
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+
+      setUser(user);
+      setToken(token);
+
+      console.log("Auth state updated:", {
+        token: token.substring(0, 10) + "...",
+        user: {
+          email: user.email,
+          role: user.role,
+        },
+      });
+    } catch (error) {
+      console.error("Error saving auth state:", error);
+      localStorage.removeItem(STORAGE_KEYS.TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER);
+      throw error;
+    }
+  };
+
+  const getStoredRole = (): Role | null => {
+    try {
+      const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        return user.role;
+      }
+      return null;
+    } catch {
+      return null;
+    }
   };
 
   const clearError = () => setError(null);
