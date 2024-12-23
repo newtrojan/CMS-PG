@@ -85,8 +85,24 @@ export class AuthController {
 
   static async getProfile(req: AuthenticatedRequest, res: Response) {
     try {
-      const user = await AuthService.getProfile(req.user!.userId);
-      return ApiResponse.success(res, user, "Profile retrieved successfully");
+      const userId = req.user?.id;
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          firstName: true,
+          lastName: true,
+          // Add other profile fields as needed
+        },
+      });
+
+      if (!user) {
+        throw new AppError("User not found", 404);
+      }
+
+      return ApiResponse.success(res, user);
     } catch (error) {
       return ApiResponse.error(
         res,
