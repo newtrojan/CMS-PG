@@ -143,11 +143,13 @@ The Insurer Management page (`/insurer`) provides a comprehensive interface for 
 
 #### Features
 
-- Insurer selection via dropdown
+- Insurer selection via dropdown with auto-refresh
 - Basic information editing (name, address, phone, email)
 - Comprehensive pricing rules management
 - Real-time validation and error handling
 - Optimistic UI updates
+- Automatic data refresh on dropdown open
+- Smart refresh handling to prevent unnecessary API calls
 
 #### State Management
 
@@ -160,7 +162,44 @@ interface InsurerPageState {
   isLoading: boolean;
   error: string | null;
   isSaving: boolean;
+  isDropdownOpen: boolean;
 }
+```
+
+#### Data Refresh Strategy
+
+The page implements a smart refresh strategy:
+
+- Initial load fetches all insurers
+- Dropdown opening triggers a fresh fetch
+- Selection changes update state without additional fetches
+- Edit completion triggers a selective refresh
+- Optimistic updates for better UX
+
+#### Form Handling
+
+- Deep copy of data for editing
+- Type-safe form updates
+- Proper handling of number inputs
+- Currency formatting for pricing fields
+- Responsive grid layout
+- Smart value formatting for different data types
+
+#### Helper Functions
+
+```typescript
+// Format display values
+const formatValue = (value: unknown): string => {
+  if (value instanceof Date) return new Date(value).toLocaleDateString();
+  if (typeof value === "object" && value !== null) return JSON.stringify(value);
+  return String(value);
+};
+
+// Handle pricing rule values
+const getPricingRuleValue = (key: string, value: unknown): string | number => {
+  if (value instanceof Date) return value.toISOString();
+  return value as string | number;
+};
 ```
 
 #### Notification System
@@ -180,11 +219,3 @@ Notifications are displayed with:
 - Error: Red background with X icon
 - Auto-dismissal after 3 seconds
 - Consistent positioning (top-right corner)
-
-#### Form Handling
-
-- Deep copy of data for editing
-- Type-safe form updates
-- Proper handling of number inputs
-- Currency formatting for pricing fields
-- Responsive grid layout

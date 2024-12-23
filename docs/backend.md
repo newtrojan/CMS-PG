@@ -213,7 +213,7 @@ interface UpdateInsurerRequest {
 }
 ```
 
-The endpoint:
+The endpoint follows these steps:
 
 1. Validates the insurer exists
 2. Updates basic insurer information
@@ -235,3 +235,19 @@ Response format:
   }
 }
 ```
+
+#### Data Validation
+
+- All numeric pricing rule values are converted to numbers with fallback to 0
+- Labor type is validated to be either "FLAT" or "MULTIPLIER"
+- Required fields are checked before processing
+- Proper error responses for invalid data
+
+#### Error Handling
+
+The endpoint provides detailed error messages for:
+
+- Invalid insurer ID
+- Missing required fields
+- Invalid pricing rule values
+- Database transaction failures
