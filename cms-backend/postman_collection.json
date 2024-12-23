@@ -158,19 +158,34 @@
         },
         {
           "name": "Create Insurer",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Ensure Authorization header is set",
+                  "if (!pm.request.headers.has('Authorization')) {",
+                  "    pm.request.headers.add({",
+                  "        key: 'Authorization',",
+                  "        value: pm.collectionVariables.get('authToken')",
+                  "    });",
+                  "}",
+                  "",
+                  "console.log('Headers:', pm.request.headers.toObject());",
+                  "console.log('Auth Token:', pm.collectionVariables.get('authToken'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{authToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "POST",
             "header": [
+              {
+                "key": "Authorization",
+                "value": "{{authToken}}",
+                "type": "text"
+              },
               {
                 "key": "Content-Type",
                 "value": "application/json"
@@ -184,25 +199,39 @@
               "raw": "{{baseUrl}}/insurers",
               "host": ["{{baseUrl}}"],
               "path": ["insurers"]
-            },
-            "description": "Create new insurer (requires ADMIN or SUDO role)"
+            }
           }
         },
         {
           "name": "Update Insurer",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Ensure Authorization header is set",
+                  "if (!pm.request.headers.has('Authorization')) {",
+                  "    pm.request.headers.add({",
+                  "        key: 'Authorization',",
+                  "        value: pm.collectionVariables.get('authToken')",
+                  "    });",
+                  "}",
+                  "",
+                  "console.log('Headers:', pm.request.headers.toObject());",
+                  "console.log('Auth Token:', pm.collectionVariables.get('authToken'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{authToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "PUT",
             "header": [
+              {
+                "key": "Authorization",
+                "value": "{{authToken}}",
+                "type": "text"
+              },
               {
                 "key": "Content-Type",
                 "value": "application/json"
@@ -223,24 +252,40 @@
                   "description": "Insurer ID"
                 }
               ]
-            },
-            "description": "Update insurer (requires ADMIN or SUDO role)"
+            }
           }
         },
         {
           "name": "Delete Insurer",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Ensure Authorization header is set",
+                  "if (!pm.request.headers.has('Authorization')) {",
+                  "    pm.request.headers.add({",
+                  "        key: 'Authorization',",
+                  "        value: pm.collectionVariables.get('authToken')",
+                  "    });",
+                  "}",
+                  "",
+                  "console.log('Headers:', pm.request.headers.toObject());",
+                  "console.log('Auth Token:', pm.collectionVariables.get('authToken'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{authToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{authToken}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/insurers/:id",
               "host": ["{{baseUrl}}"],
@@ -252,8 +297,7 @@
                   "description": "Insurer ID"
                 }
               ]
-            },
-            "description": "Delete insurer (requires SUDO role)"
+            }
           }
         }
       ]

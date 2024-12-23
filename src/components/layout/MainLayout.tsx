@@ -1,13 +1,21 @@
 // src/components/layout/MainLayout.tsx
 import { Search, Bell, Plus } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, Outlet, Navigate } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
+import { useAuth } from "../../hooks/useAuth";
+import { Loading } from "../ui/loading";
 
-interface MainLayoutProps {
-  children: React.ReactNode;
-}
+export const MainLayout = () => {
+  const { user, isLoading } = useAuth();
 
-export const MainLayout = ({ children }: MainLayoutProps) => {
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
@@ -53,7 +61,9 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
             </div>
           </div>
         </header>
-        <main className="flex-1 overflow-auto p-6">{children}</main>
+        <main className="flex-1 overflow-auto p-6">
+          <Outlet />
+        </main>
       </div>
     </div>
   );

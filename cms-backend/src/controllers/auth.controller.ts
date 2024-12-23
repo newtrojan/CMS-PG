@@ -5,6 +5,9 @@ import { ApiResponse } from "../utils/apiResponse";
 import { AppError } from "../utils/errors";
 import { Role } from "../config/auth";
 import { AuthenticatedRequest } from "../middleware/auth";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import { prisma } from "../db";
 
 export class AuthController {
   static async register(req: Request, res: Response) {
@@ -27,15 +30,41 @@ export class AuthController {
 
   static async login(req: Request, res: Response) {
     try {
+      if (!req.body) {
+        return res.status(400).json({
+          success: false,
+          message: "Request body is missing",
+        });
+      }
+
       const { email, password } = req.body;
-      const result = await AuthService.login(email, password);
-      return ApiResponse.success(res, result, "Login successful");
+      console.log("Login attempt:", { email });
+
+      try {
+        const result = await AuthService.login(email, password);
+        console.log("Login successful");
+
+        return res.json({
+          success: true,
+          data: result,
+        });
+      } catch (error) {
+        if (error instanceof AppError) {
+          return res.status(error.statusCode).json({
+            success: false,
+            message: error.message,
+          });
+        }
+        throw error;
+      }
     } catch (error) {
-      return ApiResponse.error(
-        res,
-        error instanceof Error ? error.message : "Login failed",
-        error instanceof AppError ? error.statusCode : 500
-      );
+      console.error("Login error details:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+        debug:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
+      });
     }
   }
 
@@ -65,9 +94,9 @@ export class AuthController {
     }
   }
 
-  static async updateProfile(req: Request, res: Response) {
+  static async updateProfile(req: AuthenticatedRequest, res: Response) {
     try {
-      const user = await AuthService.updateProfile(req.user.id, req.body);
+      const user = await AuthService.updateProfile(req.user!.id, req.body);
       return ApiResponse.success(res, user, "Profile updated successfully");
     } catch (error) {
       return ApiResponse.error(

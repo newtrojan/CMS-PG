@@ -3,6 +3,9 @@ import { Router } from "express";
 import { AuthController } from "../controllers/auth.controller";
 import { authenticate, authorize } from "../middleware/auth";
 import { Role } from "../config/auth";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 const router = Router();
 
@@ -76,5 +79,17 @@ router.get("/profile", authenticate, AuthController.getProfile);
  *                 type: string
  */
 router.put("/profile", authenticate, AuthController.updateProfile);
+
+router.get("/test-db", async (req, res) => {
+  try {
+    const count = await prisma.user.count();
+    res.json({ success: true, userCount: count });
+  } catch (error) {
+    console.error("Database test error:", error);
+    res
+      .status(500)
+      .json({ success: false, error: "Database connection failed" });
+  }
+});
 
 export default router;

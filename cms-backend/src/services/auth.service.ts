@@ -1,84 +1,113 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../db";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { AppError } from "../utils/errors";
-import { config } from "../config/app";
-
-const prisma = new PrismaClient();
+import { Role } from "../config/auth";
 
 export class AuthService {
-  static async register(userData: {
+  static async register(data: {
     email: string;
     password: string;
     firstName?: string;
     lastName?: string;
-    phone?: string;
-    role?: string;
+    role?: Role;
   }) {
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const existingUser = await prisma.user.findUnique({
+      where: { email: data.email },
+    });
+
+    if (existingUser) {
+      throw new AppError("Email already registered", 400);
+    }
+
+    const hashedPassword = await bcrypt.hash(data.password, 10);
 
     const user = await prisma.user.create({
       data: {
-        ...userData,
+        ...data,
         password: hashedPassword,
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
       },
     });
 
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    return user;
   }
 
   static async login(email: string, password: string) {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        role: true,
+      },
+    });
+
     if (!user) {
       throw new AppError("Invalid credentials", 401);
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password);
+
     if (!isValidPassword) {
       throw new AppError("Invalid credentials", 401);
     }
 
-    console.log("Creating token with secret:", config.jwt.secret);
-
     const token = jwt.sign(
-      {
-        userId: user.id,
-        role: user.role,
-        email: user.email,
-        iat: Math.floor(Date.now() / 1000),
-      },
-      config.jwt.secret!,
-      {
-        expiresIn: config.jwt.expiresIn,
-        algorithm: "HS256",
-      }
+      { id: user.id, email: user.email, role: user.role },
+      process.env.JWT_SECRET || "your-secret-key",
+      { expiresIn: "24h" }
     );
 
-    const { password: _, ...userWithoutPassword } = user;
-    return { user: userWithoutPassword, token };
+    return {
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
+    };
   }
 
   static async getProfile(userId: string) {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+      },
+    });
+
     if (!user) {
       throw new AppError("User not found", 404);
     }
 
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    return user;
   }
 
-  static async updateProfile(
-    userId: string,
-    data: { firstName?: string; lastName?: string; phone?: string }
-  ) {
+  static async updateProfile(userId: string, data: any) {
     const user = await prisma.user.update({
       where: { id: userId },
       data,
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+      },
     });
 
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    return user;
   }
 }
