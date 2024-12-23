@@ -1,102 +1,146 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-import { AppError } from "../utils/errors";
 import { ApiResponse } from "../utils/apiResponse";
-import { asyncHandler } from "../utils/asyncHandler";
+import { AppError } from "../utils/errors";
+import { Role } from "../config/auth";
+import { AuthenticatedRequest } from "../middleware/auth";
 
 const prisma = new PrismaClient();
 
-export const createInsurer = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { name, address, phone, billingEmail, carrierNote, pricingRules } =
-      req.body;
-
-    const insurer = await prisma.insurer.create({
-      data: {
-        name,
-        address,
-        phone,
-        billingEmail,
-        carrierNote,
-        pricingRules: {
-          create: pricingRules,
+export class InsurersController {
+  /**
+   * Get all insurers
+   * @access CCM, ADMIN, SUDO
+   */
+  static async getAll(req: AuthenticatedRequest, res: Response) {
+    try {
+      const insurers = await prisma.insurer.findMany({
+        include: {
+          pricingRules: true,
         },
-      },
-      include: {
-        pricingRules: true,
-      },
-    });
+        orderBy: {
+          name: "asc",
+        },
+      });
 
-    ApiResponse.success(res, insurer, "Insurer created successfully", 201);
-  }
-);
-
-export const getInsurers = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const insurers = await prisma.insurer.findMany({
-      include: {
-        pricingRules: true,
-      },
-    });
-
-    ApiResponse.success(res, insurers, "Insurers retrieved successfully");
-  }
-);
-
-export const getInsurer = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.params;
-
-    const insurer = await prisma.insurer.findUnique({
-      where: { id },
-      include: {
-        pricingRules: true,
-      },
-    });
-
-    if (!insurer) {
-      throw new AppError("Insurer not found", 404);
+      return ApiResponse.success(res, insurers);
+    } catch (error) {
+      return ApiResponse.error(
+        res,
+        error instanceof Error ? error.message : "Failed to fetch insurers",
+        error instanceof AppError ? error.statusCode : 500
+      );
     }
-
-    ApiResponse.success(res, insurer, "Insurer retrieved successfully");
   }
-);
 
-export const updateInsurer = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.params;
-    const { name, address, phone, billingEmail, carrierNote, pricingRules } =
-      req.body;
+  /**
+   * Create new insurer
+   * @access ADMIN, SUDO
+   */
+  static async create(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { name, address, phone, billingEmail, carrierNote, pricingRules } =
+        req.body;
 
-    const insurer = await prisma.insurer.update({
-      where: { id },
-      data: {
-        name,
-        address,
-        phone,
-        billingEmail,
-        carrierNote,
-        pricingRules: {
-          update: pricingRules,
+      // Validate required fields
+      if (!name || !address || !phone || !billingEmail) {
+        throw new AppError("Missing required fields", 400);
+      }
+
+      const insurer = await prisma.insurer.create({
+        data: {
+          name,
+          address,
+          phone,
+          billingEmail,
+          carrierNote,
+          pricingRules: pricingRules
+            ? {
+                create: pricingRules,
+              }
+            : undefined,
         },
-      },
-      include: {
-        pricingRules: true,
-      },
-    });
+        include: {
+          pricingRules: true,
+        },
+      });
 
-    ApiResponse.success(res, insurer, "Insurer updated successfully");
+      return ApiResponse.success(
+        res,
+        insurer,
+        "Insurer created successfully",
+        201
+      );
+    } catch (error) {
+      return ApiResponse.error(
+        res,
+        error instanceof Error ? error.message : "Failed to create insurer",
+        error instanceof AppError ? error.statusCode : 500
+      );
+    }
   }
-);
 
-export const deleteInsurer = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.params;
+  /**
+   * Update insurer
+   * @access ADMIN, SUDO
+   */
+  static async update(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      const { name, address, phone, billingEmail, carrierNote, pricingRules } =
+        req.body;
 
-    await prisma.insurer.delete({
-      where: { id },
-    });
+      const insurer = await prisma.insurer.update({
+        where: { id },
+        data: {
+          name,
+          address,
+          phone,
+          billingEmail,
+          carrierNote,
+          pricingRules: pricingRules
+            ? {
+                upsert: {
+                  create: pricingRules,
+                  update: pricingRules,
+                },
+              }
+            : undefined,
+        },
+        include: {
+          pricingRules: true,
+        },
+      });
 
-    ApiResponse.success(res, null, "Insurer deleted successfully");
+      return ApiResponse.success(res, insurer, "Insurer updated successfully");
+    } catch (error) {
+      return ApiResponse.error(
+        res,
+        error instanceof Error ? error.message : "Failed to update insurer",
+        error instanceof AppError ? error.statusCode : 500
+      );
+    }
   }
-);
+
+  /**
+   * Delete insurer
+   * @access SUDO only
+   */
+  static async delete(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { id } = req.params;
+
+      await prisma.insurer.delete({
+        where: { id },
+      });
+
+      return ApiResponse.success(res, null, "Insurer deleted successfully");
+    } catch (error) {
+      return ApiResponse.error(
+        res,
+        error instanceof Error ? error.message : "Failed to delete insurer",
+        error instanceof AppError ? error.statusCode : 500
+      );
+    }
+  }
+}

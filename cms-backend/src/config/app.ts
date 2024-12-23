@@ -4,7 +4,13 @@ import path from "path";
 
 // Load environment-specific .env file
 const envFile = `.env.${process.env.NODE_ENV || "development"}`;
+console.log("Loading config from:", path.resolve(process.cwd(), envFile));
+
 dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+
+// Add debug logging
+console.log("Environment:", process.env.NODE_ENV);
+console.log("JWT Secret exists:", !!process.env.JWT_SECRET);
 
 export const config = {
   app: {
@@ -18,7 +24,7 @@ export const config = {
     url: process.env.DATABASE_URL,
   },
   jwt: {
-    secret: process.env.JWT_SECRET,
+    secret: process.env.JWT_SECRET || "default-secret-for-development",
     expiresIn: process.env.JWT_EXPIRES_IN || "24h",
   },
   sentry: {

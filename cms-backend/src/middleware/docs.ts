@@ -2,6 +2,7 @@
 import { Express, Request, Response } from "express";
 import swaggerUi from "swagger-ui-express";
 import { specs } from "../config/swagger";
+import swaggerJsdoc from "swagger-jsdoc";
 
 export const setupDocs = (app: Express) => {
   // Swagger documentation route
@@ -12,4 +13,23 @@ export const setupDocs = (app: Express) => {
     res.setHeader("Content-Type", "application/json");
     res.send(specs);
   });
+
+  const options: swaggerJsdoc.Options = {
+    definition: {
+      openapi: "3.0.0",
+      info: {
+        title: "CMS API Documentation",
+        version: "1.0.0",
+        description: "Claims Management System API",
+      },
+      servers: [
+        {
+          url: "/api/v1",
+          description: "API v1",
+        },
+      ],
+      // ... rest of your swagger config
+    },
+    apis: ["./src/routes/*.ts"],
+  };
 };

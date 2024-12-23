@@ -7,7 +7,7 @@ import { Role } from "../config/auth";
 
 export interface AuthenticatedRequest extends Request {
   user?: {
-    id: string;
+    userId: string;
     email: string;
     role: Role;
   };
@@ -24,16 +24,35 @@ export const authenticate = (
       throw new AppError("No authentication token provided", 401);
     }
 
-    const decoded = jwt.verify(token, config.jwt.secret!) as {
-      id: string;
-      email: string;
-      role: Role;
-    };
+    console.log("JWT Secret:", config.jwt.secret);
+    console.log("Token:", token);
 
-    req.user = decoded;
-    next();
+    try {
+      const decoded = jwt.verify(token, config.jwt.secret!) as {
+        userId: string;
+        role: Role;
+        iat: number;
+        exp: number;
+        email: string;
+      };
+
+      req.user = {
+        userId: decoded.userId,
+        role: decoded.role,
+        email: decoded.email,
+      };
+
+      next();
+    } catch (jwtError) {
+      console.error("JWT Verification Error:", jwtError);
+      throw new AppError("Invalid or expired token", 401);
+    }
   } catch (error) {
-    next(new AppError("Invalid or expired token", 401));
+    next(
+      error instanceof AppError
+        ? error
+        : new AppError("Authentication error", 401)
+    );
   }
 };
 

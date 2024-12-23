@@ -7,6 +7,7 @@ import helmet from "helmet";
 import { config } from "./config/app";
 import { setupDocs } from "./middleware/docs";
 import authRoutes from "./routes/auth";
+import insurersRoutes from "./routes/insurers";
 import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
@@ -17,11 +18,16 @@ app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// API Routes with versioning
+const apiRouter = express.Router();
+app.use("/api/v1", apiRouter);
+
 // Setup API documentation
 setupDocs(app);
 
-// Routes
-app.use("/auth", authRoutes);
+// Mount routes on versioned API router
+apiRouter.use("/auth", authRoutes);
+apiRouter.use("/insurers", insurersRoutes);
 
 // Basic health check route
 app.get("/health", (req, res) => {

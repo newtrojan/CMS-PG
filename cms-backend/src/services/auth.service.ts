@@ -39,10 +39,20 @@ export class AuthService {
       throw new AppError("Invalid credentials", 401);
     }
 
+    console.log("Creating token with secret:", config.jwt.secret);
+
     const token = jwt.sign(
-      { userId: user.id, role: user.role },
+      {
+        userId: user.id,
+        role: user.role,
+        email: user.email,
+        iat: Math.floor(Date.now() / 1000),
+      },
       config.jwt.secret!,
-      { expiresIn: config.jwt.expiresIn }
+      {
+        expiresIn: config.jwt.expiresIn,
+        algorithm: "HS256",
+      }
     );
 
     const { password: _, ...userWithoutPassword } = user;

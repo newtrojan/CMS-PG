@@ -4,6 +4,7 @@ import { AuthService } from "../services/auth.service";
 import { ApiResponse } from "../utils/apiResponse";
 import { AppError } from "../utils/errors";
 import { Role } from "../config/auth";
+import { AuthenticatedRequest } from "../middleware/auth";
 
 export class AuthController {
   static async register(req: Request, res: Response) {
@@ -51,9 +52,9 @@ export class AuthController {
     }
   }
 
-  static async getProfile(req: Request, res: Response) {
+  static async getProfile(req: AuthenticatedRequest, res: Response) {
     try {
-      const user = await AuthService.getProfile(req.user.id);
+      const user = await AuthService.getProfile(req.user!.userId);
       return ApiResponse.success(res, user, "Profile retrieved successfully");
     } catch (error) {
       return ApiResponse.error(
