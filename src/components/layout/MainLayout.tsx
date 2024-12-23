@@ -5,9 +5,15 @@ import { Sidebar } from "./Sidebar";
 import { useAuth } from "../../hooks/useAuth";
 import { Loading } from "../ui/loading";
 import { UserProfile } from "./UserProfile";
+import { useState } from "react";
+import { NotificationsSidebar } from "./NotificationsSidebar";
 
 export const MainLayout = () => {
   const { user, isLoading } = useAuth();
+  const [notification, setNotification] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   if (isLoading) {
     return <Loading />;
@@ -44,14 +50,51 @@ export const MainLayout = () => {
               New Claim
             </Link>
 
-            <button className="relative p-2 hover:bg-gray-50 rounded-full">
-              <Bell className="h-5 w-5 text-gray-600" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+            <NotificationsSidebar />
 
             <UserProfile />
           </div>
         </header>
+        {notification && (
+          <div
+            className={`fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg text-white z-50 ${
+              notification.type === "success" ? "bg-blue-600" : "bg-red-500"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              {notification.type === "success" ? (
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              )}
+              {notification.message}
+            </div>
+          </div>
+        )}
         <main className="flex-1 overflow-auto p-6">
           <Outlet />
         </main>

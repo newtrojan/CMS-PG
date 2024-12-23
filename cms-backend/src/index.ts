@@ -9,8 +9,10 @@ import { setupDocs } from "./middleware/docs";
 import authRoutes from "./routes/auth";
 import insurersRoutes from "./routes/insurers";
 import { errorHandler } from "./middleware/errorHandler";
+import { PrismaClient } from "@prisma/client";
 
 const app = express();
+const prisma = new PrismaClient();
 
 // Basic middleware
 app.use(cors());
@@ -40,6 +42,17 @@ app.get("/health", (req, res) => {
 
 // Error handler must be registered after all controllers
 app.use(errorHandler);
+
+// Add near the start of your app
+prisma
+  .$connect()
+  .then(() => {
+    console.log("Successfully connected to database");
+  })
+  .catch((error) => {
+    console.error("Failed to connect to database:", error);
+    process.exit(1);
+  });
 
 // Start server
 const server = app.listen(config.app.port, () => {

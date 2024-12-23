@@ -11,6 +11,9 @@ import { NewClaimForm } from "./components/claims/NewClaimForm";
 import { ClaimInfoTab } from "./components/claims/tabs/ClaimInfoTab";
 import { PartsTab } from "./components/claims/tabs/parts/PartsTab";
 import { AnnexesTab } from "./components/claims/tabs/AnnexesTab";
+import { NotificationProvider } from "./contexts/NotificationContext";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { NotificationsHistoryProvider } from "./contexts/NotificationsHistoryContext";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,34 +31,40 @@ const Settings = () => <div className="p-4">Settings Page Coming Soon</div>;
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Dashboard />} />
-              <Route path="reports" element={<Reports />} />
-              <Route path="insurer" element={<Insurer />} />
-              <Route path="customers" element={<Customers />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="claims/new" element={<NewClaimForm />}>
-                <Route path="claim-info" element={<ClaimInfoTab />} />
-                <Route path="parts" element={<PartsTab />} />
-                <Route path="annexes" element={<AnnexesTab />} />
-              </Route>
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <NotificationsHistoryProvider>
+            <NotificationProvider>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route
+                    path="/"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout />
+                      </ProtectedRoute>
+                    }
+                  >
+                    <Route index element={<Dashboard />} />
+                    <Route path="reports" element={<Reports />} />
+                    <Route path="insurer" element={<Insurer />} />
+                    <Route path="customers" element={<Customers />} />
+                    <Route path="settings" element={<Settings />} />
+                    <Route path="claims/new" element={<NewClaimForm />}>
+                      <Route path="claim-info" element={<ClaimInfoTab />} />
+                      <Route path="parts" element={<PartsTab />} />
+                      <Route path="annexes" element={<AnnexesTab />} />
+                    </Route>
+                  </Route>
+                </Routes>
+              </BrowserRouter>
+            </NotificationProvider>
+          </NotificationsHistoryProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

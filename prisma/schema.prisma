@@ -1,0 +1,56 @@
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  entityId  String   // ID of the changed entity (insurer, claim, etc)
+  entityType String  // Type of entity changed (Insurer, Claim, etc)
+  action    String   // Created, Updated, Deleted
+  changes   Json     // Store the changes made
+  createdAt DateTime @default(now())
+
+  @@index([entityId])
+  @@index([userId])
+} 
+
+model PricingRules {
+  id        String   @id @default(cuid())
+  insurerId String   @unique
+  insurer   Insurer  @relation(fields: [insurerId], references: [id])
+
+  domesticWindshield       Float   @default(0)
+  domesticTempered        Float   @default(0)
+  foreignWindshield       Float   @default(0)
+  foreignTempered        Float   @default(0)
+  oem                    Float   @default(0)
+  laborType              String  @default("FLAT")
+  laborTypeValue         Float   @default(0)
+  glassLaborRate         Float   @default(0)
+  defaultHourlyRate      Float   @default(0)
+  laborDomesticWindshield Float   @default(0)
+  laborDomesticTempered   Float   @default(0)
+  laborForeignWindshield  Float   @default(0)
+  laborForeignTempered    Float   @default(0)
+  otherKitFlat           Float   @default(0)
+  kitFlat1               Float   @default(0)
+  kitFlat1_5             Float   @default(0)
+  kitFlat2               Float   @default(0)
+  kitFlat2_5             Float   @default(0)
+  kitFlat3               Float   @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([insurerId])
+}
+
+model Insurer {
+  id           String        @id @default(cuid())
+  name         String
+  address      String?
+  phone        String?
+  billingEmail String?
+  carrierNote  String?
+  pricingRules PricingRules?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+} 

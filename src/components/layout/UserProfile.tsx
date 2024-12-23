@@ -33,14 +33,27 @@ export const UserProfile = () => {
           }
         );
 
-        if (!response.ok) throw new Error("Failed to fetch profile");
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Profile fetch error:", errorData);
+          throw new Error(errorData.message || "Failed to fetch profile");
+        }
 
         const data = await response.json();
         if (data.success) {
           setProfileData(data.data);
+        } else {
+          throw new Error(data.message || "Failed to fetch profile");
         }
       } catch (error) {
         console.error("Error fetching profile:", error);
+        // Maybe show a notification here
+        if (error instanceof Error) {
+          showNotification({
+            type: "error",
+            message: error.message,
+          });
+        }
       }
     };
 

@@ -85,29 +85,28 @@ export class AuthController {
 
   static async getProfile(req: AuthenticatedRequest, res: Response) {
     try {
-      const userId = req.user?.id;
       const user = await prisma.user.findUnique({
-        where: { id: userId },
+        where: { id: req.user.id },
         select: {
           id: true,
           email: true,
+          name: true,
           role: true,
-          firstName: true,
-          lastName: true,
-          // Add other profile fields as needed
+          // Don't send sensitive info like password
         },
       });
 
       if (!user) {
-        throw new AppError("User not found", 404);
+        return ApiResponse.error(res, "User not found", 404);
       }
 
       return ApiResponse.success(res, user);
     } catch (error) {
+      console.error("Profile fetch error:", error);
       return ApiResponse.error(
         res,
-        error instanceof Error ? error.message : "Failed to get profile",
-        error instanceof AppError ? error.statusCode : 500
+        error instanceof Error ? error.message : "Failed to fetch profile",
+        500
       );
     }
   }
