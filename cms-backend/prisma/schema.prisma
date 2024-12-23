@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  CCA
+  CCM
+  ADMIN
+  SUDO
+}
+
+enum ClaimStatus {
+  DRAFT
+  SUBMITTED
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum LaborType {
+  FLAT
+  MULTIPLIER
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   // Will store hashed password
+  firstName String?
+  lastName  String?
+  phone     String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  claims    Claim[]
+
+  @@map("users")
+}
+
+model Claim {
+  id           String      @id @default(uuid())
+  claimNumber  String      @unique
+  status       ClaimStatus @default(DRAFT)
+  assignedToId String?
+  totalAmount  Float       @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  assignedTo   User?       @relation(fields: [assignedToId], references: [id])
+  vehicleInfo  VehicleInfo?
+  parts        Part[]
+  documents    Document[]
+
+  @@map("claims")
+}
+
+model VehicleInfo {
+  id        String   @id @default(uuid())
+  make      String
+  model     String
+  year      Int
+  vin       String
+  claimId   String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  claim     Claim    @relation(fields: [claimId], references: [id])
+
+  @@map("vehicle_info")
+}
+
+model Part {
+  id          String   @id @default(uuid())
+  partNumber  String
+  description String
+  quantity    Int
+  unitPrice   Float
+  claimId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  claim       Claim    @relation(fields: [claimId], references: [id])
+
+  @@map("parts")
+}
+
+model Document {
+  id        String   @id @default(uuid())
+  name      String
+  type      String
+  url       String
+  claimId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  claim     Claim    @relation(fields: [claimId], references: [id])
+
+  @@map("documents")
+}
+
+model Insurer {
+  id           String        @id @default(uuid())
+  name         String
+  address      String
+  phone        String
+  billingEmail String
+  carrierNote  String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  pricingRules PricingRules?
+
+  @@map("insurers")
+}
+
+model PricingRules {
+  id                      String    @id @default(uuid())
+  domesticWindshield      Float
+  domesticTempered        Float
+  foreignWindshield       Float
+  foreignTempered         Float
+  oem                     Float
+  laborType              LaborType
+  laborTypeValue         Float
+  glassLaborRate         Float
+  defaultHourlyRate      Float
+  laborDomesticWindshield Float
+  laborDomesticTempered   Float
+  laborForeignWindshield  Float
+  laborForeignTempered    Float
+  otherKitFlat           Float
+  kitFlat1               Float
+  kitFlat1_5             Float
+  kitFlat2               Float
+  kitFlat2_5             Float
+  kitFlat3               Float
+  insurerId              String     @unique
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+  insurer                Insurer    @relation(fields: [insurerId], references: [id])
+
+  @@map("pricing_rules")
+}

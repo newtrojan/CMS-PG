@@ -1,0 +1,85 @@
+// This is your Prisma schema file
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "@prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  role      Role     @default(USER)
+  claims    Claim[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Claim {
+  id            String         @id @default(uuid())
+  claimNumber   String        @unique
+  status        ClaimStatus   @default(DRAFT)
+  vehicleInfo   VehicleInfo?
+  parts         Part[]
+  documents     Document[]
+  assignedTo    User?         @relation(fields: [assignedToId], references: [id])
+  assignedToId  String?
+  totalAmount   Float         @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model VehicleInfo {
+  id          String   @id @default(uuid())
+  make        String
+  model       String
+  year        Int
+  vin         String
+  claim       Claim    @relation(fields: [claimId], references: [id])
+  claimId     String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Part {
+  id          String    @id @default(uuid())
+  partNumber  String
+  description String
+  quantity    Int
+  unitPrice   Float
+  claim       Claim     @relation(fields: [claimId], references: [id])
+  claimId     String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Document {
+  id          String    @id @default(uuid())
+  name        String
+  type        String
+  url         String
+  claim       Claim     @relation(fields: [claimId], references: [id])
+  claimId     String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  USER
+}
+
+enum ClaimStatus {
+  DRAFT
+  SUBMITTED
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  COMPLETED
+}

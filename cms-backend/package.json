@@ -1,0 +1,62 @@
+{
+  "name": "cms-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "NODE_ENV=development ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "start": "NODE_ENV=production node dist/index.js",
+    "start:dev": "NODE_ENV=development node dist/index.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate:dev": "NODE_ENV=development prisma migrate deploy",
+    "prisma:migrate:prod": "NODE_ENV=production prisma migrate deploy",
+    "setup:dev": "NODE_ENV=development npm run prisma:generate && npm run prisma:migrate:dev",
+    "setup:prod": "NODE_ENV=production npm run prisma:generate && npm run prisma:migrate:prod",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "seed": "node prisma/seed.js",
+    "prisma:seed": "prisma db seed",
+    "create:sudo": "ts-node src/scripts/createSudoUser.ts",
+    "setup": "prisma migrate deploy && prisma generate && npm run seed",
+    "setup:db": "ts-node scripts/setup-db.ts",
+    "db:init": "psql -h 192.168.3.202 -U akash -f prisma/init.sql"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@prisma/client": "^6.1.0",
+    "@sentry/node": "^8.47.0",
+    "@sentry/profiling-node": "^8.47.0",
+    "@sentry/tracing": "^7.114.0",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.10.2",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.7",
+    "@typescript-eslint/eslint-plugin": "^8.18.1",
+    "@typescript-eslint/parser": "^8.18.1",
+    "prettier": "^3.4.2",
+    "prisma": "^6.1.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.2"
+  }
+}
