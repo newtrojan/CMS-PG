@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../../hooks/useAuth";
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -26,11 +26,11 @@ export const Login = () => {
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!data.success) {
         throw new Error(data.message || "Login failed");
       }
 
-      setAuthInfo(data.user, data.token);
+      setAuthInfo(data.data.user, data.data.token);
       navigate("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");

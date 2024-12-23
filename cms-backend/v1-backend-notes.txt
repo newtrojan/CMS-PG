@@ -3678,6 +3678,23 @@ export class ApiResponse {
 }
 
 ================
+File: src/utils/asyncHandler.ts
+================
+import { Request, Response, NextFunction, RequestHandler } from "express";
+
+type AsyncRequestHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => Promise<void | Response>;
+
+export const asyncHandler = (fn: AsyncRequestHandler): RequestHandler => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+};
+
+================
 File: src/utils/errors.ts
 ================
 // src/utils/errors.ts
@@ -3842,122 +3859,6 @@ File: package.json
     "@sentry/profiling-node": "^8.47.0",
     "@sentry/tracing": "^7.114.0",
     "@supabase/supabase-js": "^2.47.10",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "express-rate-limit": "^7.5.0",
-    "helmet": "^8.0.0",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
-  },
-  "devDependencies": {
-    "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.0",
-    "@types/node": "^22.10.2",
-    "@types/swagger-jsdoc": "^6.0.4",
-    "@types/swagger-ui-express": "^4.1.7",
-    "@typescript-eslint/eslint-plugin": "^8.18.1",
-    "@typescript-eslint/parser": "^8.18.1",
-    "prettier": "^3.4.2",
-    "prisma": "^6.1.0",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.7.2"
-  }
-}
-
-================
-File: README.md
-================
-# CMS Backend
-
-Backend service for the Claims Management System built with Express.js, Prisma, and Supabase.
-
-## Project Structure
-
-## Setup
-
-## Prerequisites
-
-Before you begin, ensure you have:
-
-- Node.js 18.x or higher installed
-- A Supabase project created
-- A Sentry account for error tracking
-- Access to environment variables
-
-## Setup Instructions
-
-1. **Clone the repository**
-
-   ```bash
-   git clone <repository-url>
-   cd cms-backend
-
-   ```
-
-2.
-
-================
-File: tsconfig.json
-================
-{
-  "compilerOptions": {
-    "target": "es2017",
-    "module": "commonjs",
-    "lib": ["es2017", "esnext.asynciterable"],
-    "typeRoots": ["./node_modules/@types", "./src/types"],
-    "allowSyntheticDefaultImports": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "sourceMap": true,
-    "outDir": "./dist",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    },
-    "esModuleInterop": true,
-    "strict": true
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
-}
-
-================
-File: package.json
-================
-{
-  "name": "cms-backend",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate deploy",
-    "lint": "eslint . --ext .ts",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "seed": "ts-node prisma/seed.ts",
-    "prisma:seed": "prisma db seed",
-    "create:sudo": "ts-node src/scripts/createSudoUser.ts"
-  },
-  "prisma": {
-    "seed": "node prisma/seed.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "@prisma/client": "^6.1.0",
-    "@sentry/node": "^8.47.0",
-    "@sentry/profiling-node": "^8.47.0",
-    "@sentry/tracing": "^7.114.0",
-    "@supabase/supabase-js": "^2.47.10",
-    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",

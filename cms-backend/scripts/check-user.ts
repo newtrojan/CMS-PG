@@ -1,26 +1,27 @@
-import { prisma } from "../src/db";
+import { prisma } from "../src/lib/prisma";
 
-async function checkUser() {
+async function checkUser(email: string) {
   try {
     const user = await prisma.user.findUnique({
-      where: { email: "sudo@example.com" },
+      where: { email },
       select: {
         id: true,
         email: true,
         role: true,
-        password: true, // Include this to verify password exists
       },
     });
 
-    console.log("User details:", {
-      ...user,
-      hasPassword: !!user?.password,
-    });
+    if (user) {
+      console.log("User found");
+    } else {
+      console.log("User not found");
+    }
+
+    return user;
   } catch (error) {
-    console.error("Error:", error);
-  } finally {
-    await prisma.$disconnect();
+    console.error("Error checking user");
+    throw error;
   }
 }
 
-checkUser();
+export { checkUser };

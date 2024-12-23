@@ -38,11 +38,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsLoading(false);
   }, []);
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setToken(null);
-    setUser(null);
+  const logout = async () => {
+    try {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setToken(null);
+      setUser(null);
+      setError(null);
+    } catch (error) {
+      console.error("Logout error occurred");
+      throw error;
+    }
   };
 
   const setAuthInfo = (user: User, token: string) => {
