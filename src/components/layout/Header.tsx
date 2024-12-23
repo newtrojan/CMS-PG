@@ -7,11 +7,17 @@ import { useClickOutside } from "../../hooks/useClickOutside";
 import { getUserDisplayInfo } from "../../utils/userUtils";
 
 export const Header = () => {
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   useClickOutside(dropdownRef, () => setIsDropdownOpen(false));
+
+  console.log("Auth State:", {
+    isLoggedIn: !!token,
+    user: user?.email,
+    role: user?.role,
+  });
 
   const handleLogout = async () => {
     try {

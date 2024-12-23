@@ -68,15 +68,17 @@ export class AuthController {
     }
   }
 
-  static async logout(req: Request, res: Response) {
+  static async logout(req: AuthenticatedRequest, res: Response) {
     try {
-      // Just return success since we're using JWT
-      return ApiResponse.success(res, null, "Logout successful");
+      // If using sessions/tokens that need invalidation on backend
+      // Add that logic here
+
+      return ApiResponse.success(res, null, "Logged out successfully");
     } catch (error) {
       return ApiResponse.error(
         res,
-        error instanceof Error ? error.message : "Logout failed",
-        error instanceof AppError ? error.statusCode : 500
+        error.message || "Logout failed",
+        error.statusCode || 500
       );
     }
   }

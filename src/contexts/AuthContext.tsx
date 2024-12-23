@@ -40,6 +40,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     try {
+      const response = await fetch("http://localhost:5001/api/v1/auth/logout", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Logout failed");
+      }
+
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       setToken(null);
