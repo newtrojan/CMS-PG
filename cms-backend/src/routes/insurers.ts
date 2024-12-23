@@ -1,31 +1,68 @@
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { InsurersController } from "../controllers/insurers.controller";
 import { authenticate } from "../middleware/auth";
 import { authorize } from "../middleware/authorize";
-import { Role } from "../config/auth";
+import { Role } from "@prisma/client";
+import { AuthenticatedRequest } from "../middleware/auth";
 
 const router = Router();
 
-router
-  .route("/")
-  .get(
-    authenticate,
-    authorize([Role.CCM, Role.ADMIN, Role.SUDO]),
-    InsurersController.getAll
-  )
-  .post(
-    authenticate,
-    authorize([Role.ADMIN, Role.SUDO]),
-    InsurersController.create
-  );
+// Public routes (no auth required)
+router.get("/list", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await InsurersController.getPublicList(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
-router
-  .route("/:id")
-  .put(
-    authenticate,
-    authorize([Role.ADMIN, Role.SUDO]),
-    InsurersController.update
-  )
-  .delete(authenticate, authorize([Role.SUDO]), InsurersController.delete);
+// Protected routes
+router.get(
+  "/",
+  [authenticate, authorize([Role.CCM, Role.ADMIN, Role.SUDO])],
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      await InsurersController.getAll(req, res);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.post(
+  "/",
+  [authenticate, authorize([Role.ADMIN, Role.SUDO])],
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      await InsurersController.create(req, res);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.put(
+  "/:id",
+  [authenticate, authorize([Role.ADMIN, Role.SUDO])],
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      await InsurersController.update(req, res);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.delete(
+  "/:id",
+  [authenticate, authorize([Role.SUDO])],
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      await InsurersController.delete(req, res);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 export default router;

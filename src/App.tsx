@@ -7,6 +7,8 @@ import { Login } from "./pages/Login";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Dashboard } from "./pages/Dashboard";
 import { Insurer } from "./pages/Insurer";
+import { GlassClaim } from "./pages/glass-claim";
+import { GlassClaimSubmit } from "./pages/glass-claim-submit";
 import { NewClaimForm } from "./components/claims/NewClaimForm";
 import { ClaimInfoTab } from "./components/claims/tabs/ClaimInfoTab";
 import { PartsTab } from "./components/claims/tabs/parts/PartsTab";
@@ -39,6 +41,15 @@ const App = () => {
               <BrowserRouter>
                 <Routes>
                   <Route path="/login" element={<Login />} />
+                  <Route path="/glass-claim" element={<GlassClaim />} />
+                  <Route
+                    path="/glass-claim/submit"
+                    element={<GlassClaimSubmit />}
+                  />
+                  <Route
+                    path="/glass-claim/check"
+                    element={<div>Check Claim Status Coming Soon</div>}
+                  />
                   <Route
                     path="/"
                     element={
